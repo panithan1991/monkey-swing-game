@@ -6,3 +6,8 @@ Click the button below to start playing!
 
 > 🌐 **Live Game:** https://panithan1991.github.io/monkey-swing-game/
 
+# 🐒 Monkey Swing
+
+<p align="center">
+  <img src="im1.png" alt="Monkey Swing" width="1000">
+</p>
