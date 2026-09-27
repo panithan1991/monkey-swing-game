@@ -1,0 +1,27 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    match /scores/{playerId} {
+      allow get: if true;
+      allow list: if request.query.limit <= 20;
+      allow create, update: if request.auth != null
+        && request.auth.uid == playerId
+        && request.resource.data.keys().hasOnly(['name', 'score', 'distance', 'bestCombo', 'updatedAt'])
+        && request.resource.data.name is string
+        && request.resource.data.name.size() > 0
+        && request.resource.data.name.size() <= 18
+        && request.resource.data.score is int
+        && request.resource.data.score >= 0
+        && request.resource.data.score <= 1000000000
+        && request.resource.data.distance is int
+        && request.resource.data.distance >= 0
+        && request.resource.data.bestCombo is int
+        && request.resource.data.bestCombo >= 1
+        && request.resource.data.bestCombo <= 10
+        && request.resource.data.updatedAt == request.time
+        && (!exists(/databases/$(database)/documents/scores/$(playerId))
+            || request.resource.data.score >= resource.data.score);
+      allow delete: if false;
+    }
+  }
+}

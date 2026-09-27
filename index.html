@@ -1,282 +1,56 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="th">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Monkey Swing HD - ทะยานไปในพงไพร</title>
-    <style>
-        body, html {
-            margin: 0;
-            padding: 0;
-            width: 100%;
-            height: 100%;
-            overflow: hidden;
-            background-color: #051908;
-            font-family: 'Tahoma', sans-serif;
-        }
-        canvas {
-            display: block;
-        }
-        #ui-layer {
-            position: absolute;
-            top: 20px;
-            left: 20px;
-            color: white;
-            pointer-events: none;
-            text-shadow: 2px 2px 4px rgba(0,0,0,0.5);
-        }
-        #msg {
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            color: white;
-            text-align: center;
-            background: rgba(0,0,0,0.6);
-            padding: 30px;
-            border-radius: 20px;
-            border: 2px solid #4CAF50;
-            display: block;
-        }
-        button {
-            background: #4CAF50;
-            border: none;
-            padding: 15px 30px;
-            color: white;
-            font-size: 20px;
-            border-radius: 10px;
-            cursor: pointer;
-            margin-top: 15px;
-        }
-        button:hover { background: #45a049; }
-    </style>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#071f27">
+  <meta name="description" content="Monkey Swing: เหวี่ยงลิงลุยป่า เก็บกล้วย ทำคอมโบ และไต่ Ranking">
+  <title>Monkey Swing — Jungle Run</title>
+  <link rel="stylesheet" href="styles.css">
 </head>
 <body>
+  <canvas id="game" aria-label="เกม Monkey Swing"></canvas>
+  <div class="grain" aria-hidden="true"></div>
 
-    <div id="ui-layer">
-        <h2 style="margin:0">คะแนน: <span id="scoreDisplay">0</span></h2>
+  <header class="topbar">
+    <div class="brand"><span class="brand-mark">●</span><span>MONKEY<span class="brand-accent">SWING</span></span><small>JUNGLE RUN</small></div>
+    <div class="hud" aria-live="polite">
+      <div class="hud-item"><small>คะแนน</small><strong id="score">0</strong></div>
+      <div class="hud-item"><small>ระยะทาง</small><strong id="distance">0 <em>m</em></strong></div>
+      <div class="hud-item"><small>คอมโบ</small><strong id="combo">×1</strong></div>
+      <div class="hud-item"><small>ชีวิต</small><strong id="hearts">♥</strong></div>
     </div>
+    <div class="top-actions"><button id="soundBtn" class="icon-btn" aria-label="เปิดหรือปิดเสียง">♪</button><button id="pauseBtn" class="icon-btn" aria-label="หยุดเกมชั่วคราว">Ⅱ</button></div>
+  </header>
 
-    <div id="msg">
-        <h1 id="title">MONKEY SWING 🐒</h1>
-        <p>กะจังหวะเหวี่ยงแล้วคลิกเพื่อกระโดดจับเถาวัลย์ถัดไป!</p>
-        <button onclick="startGame()">เริ่มเล่นเกม</button>
-    </div>
+  <div id="hint" class="hint" aria-live="polite">รอลิงเหวี่ยงไปทางขวา แล้วแตะหรือกด SPACE เพื่อกระโดด</div>
+  <div id="toast" class="toast" aria-live="polite"></div>
 
-    <canvas id="gameCanvas"></canvas>
+  <div id="overlay" class="overlay">
+    <section class="panel" aria-labelledby="panelTitle">
+      <div class="eyebrow"><span class="eyebrow-line"></span> JUNGLE ARCADE <span class="eyebrow-line"></span></div>
+      <div class="mascot" aria-hidden="true"><span>🐵</span><i class="leaf leaf-a"></i><i class="leaf leaf-b"></i></div>
+      <h1 id="panelTitle">MONKEY<br><span>SWING</span></h1>
+      <p id="panelText">กะจังหวะเหวี่ยงเองแล้วกระโดดจับเถาวัลย์ถัดไป พลาดครั้งเดียวจบรอบ!</p>
+      <div id="finalStats" class="final-stats" hidden></div>
+      <label class="name-field">ชื่อใน Ranking <input id="playerName" maxlength="18" autocomplete="nickname" placeholder="นักโหนป่า"></label>
+      <div class="panel-buttons"><button id="playBtn" class="primary-btn">เริ่มผจญภัย <span>↗</span></button><button id="finishBtn" class="secondary-btn" hidden>จบเกมและบันทึกคะแนน</button><button id="rankBtn" class="secondary-btn">🏆 &nbsp; ดู Ranking</button></div>
+      <div class="howto"><span><b>SPACE</b> หรือ <b>แตะ</b> เพื่อกระโดด</span><span>จับจังหวะวงแสงเพื่อโบนัส</span></div>
+    </section>
+  </div>
 
-<script>
-    const canvas = document.getElementById("gameCanvas");
-    const ctx = canvas.getContext("2d");
-    const scoreDisplay = document.getElementById("scoreDisplay");
-    const msgBox = document.getElementById("msg");
+  <div id="ranking" class="modal" hidden>
+    <section class="rank-panel" aria-labelledby="rankTitle">
+      <button id="closeRank" class="close-btn" aria-label="ปิด">×</button>
+      <div class="eyebrow">HALL OF FAME</div><h2 id="rankTitle">อันดับนักโหนป่า</h2>
+      <div class="rank-tabs"><button id="globalTab" class="active">🌐 ทั่วโลก</button><button id="localTab">⌂ ในเครื่อง</button></div>
+      <p id="rankStatus" class="rank-status"></p>
+      <ol id="rankList" class="rank-list"></ol>
+      <div class="rank-footer">คะแนนสูงสุดหนึ่งรายการต่อผู้เล่น · เล่นได้ไม่จำกัดรอบ</div>
+    </section>
+  </div>
 
-    // Game Variables
-    let gameState = "menu";
-    let score = 0;
-    let cameraX = 0;
-    let width, height;
-
-    const gravity = 0.4;
-    let vines = [];
-    let particles = [];
-    let monkey = {
-        x: 0, y: 0, vx: 0, vy: 0, 
-        isAttached: true, 
-        vineIdx: 0, 
-        angle: 0, 
-        dist: 0,
-        rotation: 0
-    };
-
-    function resize() {
-        width = window.innerWidth;
-        height = window.innerHeight;
-        canvas.width = width;
-        canvas.height = height;
-    }
-
-    window.addEventListener('resize', resize);
-    resize();
-
-    class Particle {
-        constructor(x, y) {
-            this.x = x; this.y = y;
-            this.vx = (Math.random() - 0.5) * 10;
-            this.vy = (Math.random() - 0.5) * 10;
-            this.life = 1.0;
-            this.color = Math.random() > 0.5 ? "#4CAF50" : "#8BC34A";
-        }
-        update() {
-            this.x += this.vx; this.y += this.vy;
-            this.life -= 0.02;
-        }
-        draw() {
-            ctx.globalAlpha = this.life;
-            ctx.fillStyle = this.color;
-            ctx.beginPath();
-            ctx.arc(this.x - cameraX, this.y, 4, 0, Math.PI*2);
-            ctx.fill();
-            ctx.globalAlpha = 1;
-        }
-    }
-
-    function createVine(x) {
-        return {
-            x: x,
-            y: -50,
-            len: height * 0.4 + Math.random() * 150,
-            angle: 0,
-            speed: 0.02 + Math.random() * 0.02,
-            offset: Math.random() * Math.PI * 2
-        };
-    }
-
-    function startGame() {
-        score = 0;
-        cameraX = 0;
-        vines = [];
-        particles = [];
-        scoreDisplay.innerText = "0";
-        
-        // สร้างเถาวัลย์เริ่มต้น
-        for(let i = 0; i < 6; i++) {
-            vines.push(createVine(300 + i * 400));
-        }
-
-        monkey.vineIdx = 0;
-        monkey.isAttached = true;
-        monkey.rotation = 0;
-        
-        gameState = "playing";
-        msgBox.style.display = "none";
-    }
-
-    function update() {
-        if (gameState !== "playing") return;
-
-        // อัปเดตเถาวัลย์
-        vines.forEach(v => {
-            v.angle = Math.sin(Date.now() * 0.002 * (v.speed * 50) + v.offset) * 0.8;
-        });
-
-        if (monkey.isAttached) {
-            let v = vines[monkey.vineIdx];
-            monkey.x = v.x + Math.sin(v.angle) * v.len;
-            monkey.y = v.y + Math.cos(v.angle) * v.len;
-            cameraX += (monkey.x - cameraX - 200) * 0.1;
-        } else {
-            monkey.vy += gravity;
-            monkey.x += monkey.vx;
-            monkey.y += monkey.vy;
-            monkey.rotation += 0.1;
-            cameraX += (monkey.x - cameraX - 200) * 0.1;
-
-            // ตรวจหาเถาวัลย์ถัดไป
-            for (let i = monkey.vineIdx + 1; i < vines.length; i++) {
-                let v = vines[i];
-                let ex = v.x + Math.sin(v.angle) * v.len;
-                let ey = v.y + Math.cos(v.angle) * v.len;
-                let d = Math.hypot(monkey.x - ex, monkey.y - ey);
-
-                if (d < 50 && monkey.vy > -2) {
-                    monkey.isAttached = true;
-                    monkey.vineIdx = i;
-                    score++;
-                    scoreDisplay.innerText = score;
-                    // เอฟเฟกต์ใบไม้
-                    for(let p=0; p<10; p++) particles.push(new Particle(monkey.x, monkey.y));
-                    
-                    if (vines.length - i < 5) {
-                        vines.push(createVine(vines[vines.length-1].x + 400));
-                    }
-                    break;
-                }
-            }
-        }
-
-        // ตกจอ
-        if (monkey.y > height + 100) {
-            gameState = "gameover";
-            msgBox.style.display = "block";
-            document.getElementById("title").innerText = "จบเกม! คะแนน: " + score;
-        }
-
-        particles.forEach((p, i) => {
-            p.update();
-            if (p.life <= 0) particles.splice(i, 1);
-        });
-    }
-
-    function draw() {
-        // วาดท้องฟ้าไล่เฉด
-        let skyGrd = ctx.createLinearGradient(0, 0, 0, height);
-        skyGrd.addColorStop(0, "#004d40");
-        skyGrd.addColorStop(1, "#1b5e20");
-        ctx.fillStyle = skyGrd;
-        ctx.fillRect(0, 0, width, height);
-
-        // วาดต้นไม้ไกลๆ (Parallax)
-        ctx.fillStyle = "rgba(0,0,0,0.2)";
-        for(let i=0; i<10; i++) {
-            let px = (i * 600 - cameraX * 0.3) % (600 * 10);
-            ctx.fillRect(px, height-400, 200, 400);
-        }
-
-        // วาดเถาวัลย์
-        vines.forEach(v => {
-            let sx = v.x - cameraX;
-            let ex = sx + Math.sin(v.angle) * v.len;
-            let ey = v.y + Math.cos(v.angle) * v.len;
-
-            // วาดเส้นเถาวัลย์แบบโค้งนิดๆ
-            ctx.beginPath();
-            ctx.moveTo(sx, v.y);
-            ctx.quadraticCurveTo(sx + 20, v.y + v.len/2, ex, ey);
-            ctx.strokeStyle = "#3e2723";
-            ctx.lineWidth = 8;
-            ctx.stroke();
-            ctx.strokeStyle = "#4CAF50";
-            ctx.lineWidth = 3;
-            ctx.stroke();
-        });
-
-        // วาดลิง
-        ctx.save();
-        ctx.translate(monkey.x - cameraX, monkey.y);
-        if (!monkey.isAttached) ctx.rotate(monkey.rotation);
-        ctx.font = "50px Arial";
-        ctx.textAlign = "center";
-        ctx.textBaseline = "middle";
-        ctx.fillText("🐒", 0, 0);
-        ctx.restore();
-
-        // วาดอนุภาค
-        particles.forEach(p => p.draw());
-    }
-
-    function loop() {
-        update();
-        draw();
-        requestAnimationFrame(loop);
-    }
-
-    function handleAction() {
-        if (gameState === "playing" && monkey.isAttached) {
-            monkey.isAttached = false;
-            let v = vines[monkey.vineIdx];
-            // คำนวณแรงส่ง (ยิ่งแกว่งแรง ยิ่งพุ่งไกล)
-            let swingForce = Math.cos(v.angle) * 12;
-            monkey.vx = 8 + Math.abs(swingForce);
-            monkey.vy = -10 + (v.angle * 5);
-        }
-    }
-
-    window.addEventListener("mousedown", handleAction);
-    window.addEventListener("touchstart", (e) => { e.preventDefault(); handleAction(); });
-    window.addEventListener("keydown", (e) => { if(e.code === "Space") handleAction(); });
-
-    loop();
-</script>
+  <script src="firebase-config.js"></script>
+  <script type="module" src="game.js"></script>
 </body>
 </html>
