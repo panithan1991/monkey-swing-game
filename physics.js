@@ -14,14 +14,19 @@ export function vineAt(index) {
 }
 
 export function vineEndpoint(vine, time) {
-  const theta = Math.sin(time * vine.speed + vine.phase) * .31;
+  const theta = Math.sin(time * vine.speed + vine.phase) * .4;
   return { x: vine.x + Math.sin(theta) * vine.len, y: vine.y + Math.cos(theta) * vine.len, theta };
 }
 
-export function flightVelocity(start, target, duration, gravity) {
+// Launch energy comes from the current swing. The next vine is deliberately
+// absent from this calculation so timing remains the player's responsibility.
+export function swingLaunchVelocity(vine, time) {
+  const phase = time * vine.speed + vine.phase;
+  const angle = Math.sin(phase) * .4;
+  const tangent = Math.cos(angle) * vine.len * .4 * vine.speed * Math.cos(phase);
   return {
-    vx: (target.x - start.x) / duration,
-    vy: (target.y - start.y - .5 * gravity * duration * duration) / duration
+    vx: 255 + tangent * .6,
+    vy: -420 - Math.max(0, tangent) * .17 - Math.max(0, angle) * 80
   };
 }
 
