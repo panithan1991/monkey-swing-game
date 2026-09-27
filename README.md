@@ -1,3 +1,14 @@
+# 🎮 Play the Game
+
+Click the button below to start playing!
+
+[![Play Game](https://img.shields.io/badge/▶%20PLAY%20GAME-Click%20Here-brightgreen?style=for-the-badge)](https://panithan1991.github.io/test/)
+
+> 🌐 **Live Game:** https://panithan1991.github.io/test/
+
+
+
+
 # Monkey Swing — Jungle Run
 
 เกม HTML Canvas สำหรับ GitHub Pages เล่นได้ไม่จำกัดระยะทาง มีคอมโบ กล้วย โบนัสเถาวัลย์ทอง หนึ่งชีวิต และ Ranking แรงกระโดดมาจากจังหวะแกว่ง ณ เวลาที่ผู้เล่นกด ไม่มีระบบเล็งให้จับอัตโนมัติ
